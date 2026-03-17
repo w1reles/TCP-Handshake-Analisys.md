@@ -1,0 +1,29 @@
+# Lab : Analise Pratica DO TCP THREE-WAY HANDSHAKE
+## Objetivo .
+Comprovar fisicamente o estabelecimento de uma conexão TCP (Three Way Handshake) antes da transfêrencia de dados.
+Physically verify establishment of a TCP (Three Way Handshake) before data transfers. 
+
+## 2. CENARIO VETOR DE ATAQUE
+Atacante (Origem):** '192.168.1.123 (Zorin OS)
+Alvo (Destino):** '192.168.1.254 (gateway/route)
+Alvo (Porta):** '80 (HTPP)
+
+**Comando de interceptação (Sniffer):**
+'sudo tcpdump -ni wls20 host 192.168.1.254'
+
+**Comando de Ataque (Scanner)**
+'nmap -sT -p 80 192.162.1.254'
+
+*Evidencia de Captura (OUTPUT BRUTO)**
+Abaixo esta o recorte do trafego da rede, isolando o momento do handshake, ignorando os pacotes de resolução de hardware ARP:
+
+> 20:44:43.263447 IP 192.168.1.123.34242 > 192.168.1.254.80: Flags [S], seq 1806168299, win 64240, length 0
+> 20:44:43.266263 IP 192.168.1.254.80 > 192.168.1.123.34242: Flags [S.], seq 4021160554, ack 1806168300, win 28960, length 0
+> 20:44:43.266335 IP 192.168.1.123.34242 > 192.168.1.254.80: Flags [.], ack 1, win 502, length 0
+> 20:44:43.266427 IP 192.168.1.123.34242 > 192.168.1.254.80: Flags [R.], seq 1, ack 1, win 502, length 0
+
+## 4. Analise Técnica
+1. **Passo 1 (SYN) :**A flag `[S]` indica que a maquina de origem iniciou o pedido de sincronização na portal 80 do alvo.
+2. **Passo 2 (SYN-ACK) :** Em aproximadamente 3 milisegundos, o alvo respondeu com a flag `[S.]` (SYN + ACK), confirmando o recebimento e atestando que a porta 80 estava aberta e pronta para conexão.
+3. **Passo 3 (ACK):** A origem enviou pacote `[.]`(ACK FINAL), estabelecendo efetivamente a conexão TCP.
+4. **Tear Down (RST) :** Imediatamente após a confirmação (`20:44:43.266427`). o Nmap enviou a flag `[R.]`(Reset). Isso ocorre porque o objetivo de ataque era apenas validar o estado da porta. Ao enviar o Reset, a ferramenta encerra a conexão abruptamente, evitando o consumo desnecessario de sockets no servidor alvo.
